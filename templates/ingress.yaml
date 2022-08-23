@@ -31,7 +31,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "postfacto.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare ">=1.22-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
 apiVersion: extensions/v1beta1
@@ -56,6 +58,23 @@ spec:
       secretName: {{ .secretName }}
   {{- end }}
 {{- end }}
+{{- if semverCompare ">=1.22-0" .Capabilities.KubeVersion.GitVersion }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ . }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port: 
+                  number: {{ $svcPort }}
+            pathType: ImplementationSpecific
+        {{- end }}
+  {{- end }}
+{{- else }}
   rules:
   {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
@@ -68,4 +87,5 @@ spec:
               servicePort: {{ $svcPort }}
         {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
