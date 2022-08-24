@@ -62,11 +62,61 @@ resources: {}
 
 nodeSelector: {}
 
-disableSSLRedirect:
-googleOAuthClientId:
-secretKeyBase:
+postfacto:
+  ## Default administrative user for Postfacto
+  admin:
+    username:
+    password:
+     
+  ## Connection details for an external PostgreSQL database, used when bringing your
+  ## own Postgres instance.
+  ##
+  postgresql:
+    ## The host to connect to.
+    ##
+    host:
+    ## The port to connect to.
+    ##
+    port: 5432
+    ## The name of the database to use.
+    ##
+    database: postfacto
+ 
+  ## By default Postfacto redirects to HTTPS by default, setting this to true disables 
+  ## that behaviour and can be useful when getting started
+  ## 
+  disableSSLRedirect:
+  ## The Google oAuth client ID to use to allow users to log in using a google account
+  ##
+  googleOAuthClientId:
+ 
+  ## Used for signing and encryption, should be set to a random value. Required to 
+  ## perserve sessions across upgrades
+  ##
+  secretKeyBase:
+
+postgresql:
+  ## Use the PostgreSQL chart dependency.
+  ##
+  ## Set to false if bringing your own PostgreSQL, and set the corresponding `secrets`
+  ## fields that correspond to the PostgreSQL variables that Postfacto should use
+  ## to connect to.
+  ##
+  ## Should be set to false if using the chart as a worker only deployment.
+  ##
+  enabled: true
 
 redis:
+  ## Use the Redis chart dependency.
+  ##
+  ## Set to false if bringing your own Redis, and set the corresponding `secrets`
+  ## fields that correspond to the Redis variables that Postfacto should use
+  ## to connect to.
+  ##
+  ## Should be set to false if using the chart as a worker only deployment.
+  ##
+  enabled: true
+
   cluster:
     enabled: false
 
