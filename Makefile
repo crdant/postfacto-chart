@@ -10,9 +10,14 @@ TEAM        := $(shell yq .team $(PROJECT_PARAMS))
 PIPELINE    := $(APPLICATION)
 REPOSITORY  := $(shell git remote get-url origin | sed -Ene's_git@(github.com):([^/]*)_https://\1/\2_p')
 
-CI_DIR   := $(PROJECT_DIR)/ci
-BRANCH   := $(shell git branch --show-current)
-PRE      := SNAPSHOT
+CI_DIR      := $(PROJECT_DIR)/ci
+BRANCH      := $(shell git branch --show-current)
+PRE         := SNAPSHOT
+ifeq ($(PRE),SNAPSHOT)
+  PRE_NO_VERSION := true
+else
+  PRE_NO_VRESION := false
+endif
 
 CHART_VERSION=0.1.0-SNAPSHOT
 APP_VERSION=latest
@@ -44,7 +49,8 @@ secrets: $(PROJECT_PARAMS)
 .PHONY: pipeline
 pipeline: secrets
 	@fly --target $(TEAM) set-pipeline --pipeline $(PIPELINE) --config $(CI_DIR)/pipeline/pipeline.yaml --non-interactive \
-			--var repository=$(REPOSITORY) --var branch=$(BRANCH) --var image-repository=$(APPLICATION) --var bucket=$(TEAM) \
-      --var bump=$(BUMP) --var pre=$(PRE)
+      --var application=$(APPLICATION)  --var team=$(TEAM) \
+			--var repository=$(REPOSITORY) --var branch=$(BRANCH) \
+      --var bump=$(BUMP) --var pre=$(PRE) --yaml-var pre-no-version=$(PRE_NO_VERSION)
 	@fly --target $(TEAM) unpause-pipeline --pipeline $(PIPELINE)
 
