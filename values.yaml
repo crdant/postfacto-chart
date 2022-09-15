@@ -120,6 +120,13 @@ redis:
   cluster:
     enabled: false
 
+admin-console:
+  ## Use the KOTS admin console chart dependency.
+  ##
+  ## Set to false if not deploying with Replicated KOTS, otherwise set to true
+  ##
+  enabled: true
+
 tolerations: []
 
 affinity: {}
