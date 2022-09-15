@@ -166,7 +166,7 @@ jobs:
         args:
         - push
         - postfacto-((.:chart-version)).tgz
-        - oci://((registry.fqdn))/((team))/chart
+        - oci://((registry.fqdn))/((team))/charts
         - --registry-config
         - ../config/registry.json
   - put: version
