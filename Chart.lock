@@ -5,5 +5,8 @@ dependencies:
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 17.1.0
-digest: sha256:226dd178a53b0fae525ea66d3de5b9d59828ecf7da89740e90a15198c099a0c7
-generated: "2022-08-23T14:58:44.211925-04:00"
+- name: admin-console
+  repository: oci://registry.replicated.com/library
+  version: 1.83.0
+digest: sha256:4718692e63e99aaaead9ab629c615caf29619be330ef0882c701242c3e25bbae
+generated: "2022-09-14T21:09:32.554117-04:00"
