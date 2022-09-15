@@ -53,4 +53,11 @@ pipeline: secrets
 			--var repository=$(REPOSITORY) --var branch=$(BRANCH) \
       --var bump=$(BUMP) --var pre=$(PRE) --yaml-var pre-no-version=$(PRE_NO_VERSION)
 	@fly --target $(TEAM) unpause-pipeline --pipeline $(PIPELINE)
+ 
+.PHONY: encrypt
+encrypt:
+	@gpg --armor --encrypt --sign --output secrets/params.yaml.enc secrets/params.yaml
 
+.PHONY: decrypt
+decrypt:
+	@gpg --decrypt secrets/params.yaml.enc > secrets/params.yaml
