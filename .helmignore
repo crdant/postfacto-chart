@@ -1,0 +1,8 @@
+# do not include build and CI/CD files in the chart bundle
+Makefile
+ci
+
+# also leave .git internals out of the bundle
+.git
+
+# and, though our secrets are encrypted, they can still stay out of the chart

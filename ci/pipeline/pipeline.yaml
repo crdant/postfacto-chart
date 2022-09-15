@@ -1,0 +1,175 @@
+---
+resources:
+# Use the example docker configuration in the Tailscale source
+- name: source
+  type: git
+  icon: github
+  source:
+    uri: ((repository))
+    branch: ((branch))
+
+- name: version
+  type: semver
+  icon: counter
+  source:
+    endpoint: ((minio.fqdn))
+    access_key_id: ((minio.access_key_id))
+    secret_access_key: ((minio.secret_access_key))
+    bucket: ((team))
+    key: ((application)).version 
+    initial-version: 0.1.0
+
+jobs:
+- name: create-chart
+  plan:
+  - get: source
+    trigger: true
+  - get: version
+    params: 
+      bump: ((bump))
+      pre: ((pre))
+      pre_without_version: ((pre-no-version))
+  - load_var: chart-version
+    file: version/version
+  - task: add-repo
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: source
+      outputs:
+      - name: cache
+      - name: config
+      run:
+        dir: source
+        path: helm
+        args:
+        - repo
+        - add 
+        - bitnami
+        - https://charts.bitnami.com/bitnami
+        - --repository-cache
+        - cache
+        - --repository-config
+        - ../config/repositories.yaml
+  - task: update-cache
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: source
+      - name: config
+      outputs:
+      - name: cache
+      run:
+        dir: source
+        path: helm
+        args:
+        - repo
+        - update 
+        - --repository-cache
+        - ../cache
+        - --repository-config
+        - ../config/repositories.yaml
+  - task: build-dependencies
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: source
+      - name: config
+      - name: cache
+      outputs:
+      - name: source
+      run:
+        dir: source
+        path: helm
+        args:
+        - dependency
+        - build 
+        - --repository-cache
+        - ../cache
+        - --repository-config
+        - ../config/repositories.yaml
+  - task: package-chart
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: source
+      outputs:
+      - name: tarball
+      run:
+        path: helm
+        args:
+        - package
+        - --version
+        - ((.:chart-version))
+        - --destination
+        - tarball
+        - source 
+  - task: registry-login
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: source
+      - name: config
+      outputs:
+      - name: config
+      run:
+        path: helm
+        args:
+        - registry
+        - login
+        - ((registry.fqdn))
+        - --username
+        - ((registry.robot))
+        - --password
+        - ((registry.token))
+        - --registry-config
+        - config/registry.json
+  - task: push-chart
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: dtzar/helm-kubectl
+      inputs:
+      - name: tarball
+      - name: config
+      run:
+        dir: tarball
+        path: helm
+        args:
+        - push
+        - postfacto-((.:chart-version)).tgz
+        - oci://((registry.fqdn))/((team))/charts
+        - --registry-config
+        - ../config/registry.json
+  - put: version
+    params: 
+      file: version/version
+

@@ -1,0 +1,5 @@
+brew 'vault'
+brew 'helm'
+brew 'yq'
+brew 'gnupg'
+cask 'fly'

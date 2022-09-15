@@ -1,1 +1,4 @@
 charts/
+secrets/*
+!secrets/*.enc
+postfacto*.tgz
